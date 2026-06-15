@@ -272,8 +272,8 @@ MIT — voir [LICENSE](LICENSE).
 
 ## 👤 Auteur
 
-**Votre Nom**  
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://linkedin.com/in/votre-profil)
+**CHEMLOUL Syfax**  
+
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-black)](https://github.com/votre-username)
 
 ---
