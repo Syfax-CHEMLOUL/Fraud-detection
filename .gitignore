@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+venv/
+.env
+*.egg-info/
+
+# Models (large files)
+models/*.h5
+models/*.pkl
+models/*.npy
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Kaggle credentials
+kaggle.json
+~/.kaggle/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docs outputs
+docs/*.png
