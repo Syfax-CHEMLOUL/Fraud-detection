@@ -274,7 +274,7 @@ MIT — voir [LICENSE](LICENSE).
 
 **CHEMLOUL Syfax**  
 
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-black)](https://github.com/votre-username)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-black)](https://github.com/Syfax-CHEMLOUL)
 
 ---
 
