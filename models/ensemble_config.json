@@ -1,0 +1,5 @@
+{
+  "w_lstm": 0.35,
+  "w_xgb": 0.65,
+  "fraud_threshold": 0.5
+}
