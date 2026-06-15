@@ -216,6 +216,44 @@ pytest tests/ -v
 ```
 
 ---
+## 🤖 Obtenir les modèles entraînés
+
+Les modèles ne sont pas inclus dans le repo (fichiers trop lourds pour Git).  
+Deux options pour les obtenir :
+
+### Option A — Les entraîner vous-même (recommandé, ~10 min sur CPU)
+
+```bash
+# 1. Configurer l'API Kaggle (nécessaire pour télécharger le dataset)
+mkdir -p ~/.kaggle
+cp kaggle.json ~/.kaggle/
+chmod 600 ~/.kaggle/kaggle.json
+
+# 2. Lancer le notebook — il télécharge le dataset et génère les modèles dans models/
+jupyter notebook notebooks/fraud_detection_v2.ipynb
+```
+
+Les fichiers suivants seront créés automatiquement dans `models/` :
+```
+models/
+├── xgboost_model.pkl
+├── lstm_model.h5
+├── autoencoder.h5
+├── scaler.pkl
+├── ae_threshold.npy
+└── feature_names.json
+```
+
+### Option B — Télécharger les modèles pré-entraînés
+
+> *(Optionnel — à remplir si vous hébergez les modèles quelque part)*
+
+```bash
+# Exemple si vous les mettez sur Google Drive / HuggingFace / Release GitHub
+# À venir
+```
+
+> ⚠️ Sans les modèles dans `models/`, l'API démarre en **mode fallback heuristique** (voir `predictor.py`).
 
 ## 📁 Structure du projet
 
