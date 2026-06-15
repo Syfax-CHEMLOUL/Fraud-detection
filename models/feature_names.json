@@ -1,0 +1,1 @@
+["Transaction_Amount", "Quantity", "Customer_Age", "Account_Age_Days", "Transaction_Hour", "amount_log", "amount_per_unit", "amount_vs_cat_median", "tx_is_weekend", "tx_is_night", "tx_day_of_week", "tx_month", "same_address", "customer_tx_count", "customer_avg_amount", "customer_std_amount", "amount_zscore", "Payment_Method_enc", "Product_Category_enc", "Device_Used_enc"]
