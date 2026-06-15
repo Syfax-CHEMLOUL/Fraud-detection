@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡️ Fraud Detection</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh}
+  .header{background:#1a1a1a;color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;gap:12px}
+  .header h1{font-size:20px;font-weight:500}
+  .header span{font-size:13px;color:#888;margin-left:auto}
+  .main{max-width:860px;margin:2rem auto;padding:0 1rem}
+  .card{background:#fff;border-radius:12px;border:1px solid #e5e5e5;padding:1.5rem;margin-bottom:1rem}
+  .section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1rem}
+  .field{display:flex;flex-direction:column;gap:5px}
+  label{font-size:13px;color:#555;font-weight:500}
+  input,select{height:38px;padding:0 10px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;width:100%;transition:border 0.15s}
+  input:focus,select:focus{outline:none;border-color:#1a1a1a}
+  .btn{width:100%;height:46px;border-radius:8px;border:none;cursor:pointer;font-size:15px;font-weight:500;background:#1a1a1a;color:#fff;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:hover{opacity:0.85}
+  .btn:disabled{opacity:0.5;cursor:not-allowed}
+  .result{margin-top:1.5rem;border-radius:12px;border:1px solid #e5e5e5;background:#fff;padding:1.5rem;display:none}
+  .verdict{font-size:22px;font-weight:600;margin-bottom:8px}
+  .fraud-yes{color:#b91c1c}
+  .fraud-no{color:#15803d}
+  .risk-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:1.25rem}
+  .LOW{background:#dcfce7;color:#15803d}
+  .MEDIUM{background:#fef3c7;color:#92400e}
+  .HIGH{background:#fee2e2;color:#b91c1c}
+  .CRITICAL{background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5}
+  .scores{margin:1rem 0}
+  .score-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:14px;gap:10px}
+  .score-row:last-child{border-bottom:none}
+  .score-label{color:#555;min-width:110px}
+  .bar-wrap{flex:1;height:7px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+  .bar{height:100%;border-radius:4px;transition:width 0.5s ease}
+  .score-val{font-weight:600;min-width:42px;text-align:right}
+  .ensemble-row{border-top:2px solid #e5e5e5!important;margin-top:4px;padding-top:10px!important}
+  .factors{margin-top:1rem}
+  .factors-title{font-size:13px;font-weight:600;color:#555;margin-bottom:8px}
+  .factor{display:flex;align-items:center;gap:8px;font-size:13px;color:#555;padding:4px 0}
+  .dot{width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0}
+  .recommendation{margin-top:1rem;padding:14px;border-radius:8px;background:#f9f9f9;border:1px solid #e5e5e5;font-size:14px;line-height:1.5}
+  .api-status{display:flex;align-items:center;gap:6px;font-size:12px;color:#888;margin-top:8px}
+  .dot-status{width:8px;height:8px;border-radius:50%}
+  .online{background:#22c55e}
+  .offline{background:#f59e0b}
+  .spinner{width:18px;height:18px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .preset-btns{display:flex;gap:8px;margin-bottom:1.25rem}
+  .preset{padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;transition:all 0.15s}
+  .preset:hover{background:#f5f5f5}
+  .preset.normal{border-color:#bbf7d0;color:#15803d}
+  .preset.fraud{border-color:#fecaca;color:#b91c1c}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span>🛡️</span>
+  <h1>Fraud Detection — Real-time Analysis</h1>
+  <span>LSTM + XGBoost Ensemble</span>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <div class="section-title">Quick presets</div>
+    <div class="preset-btns">
+      <button class="preset normal" onclick="loadPreset('normal')">✅ Normal transaction</button>
+      <button class="preset fraud" onclick="loadPreset('fraud')">🚨 Suspicious transaction</button>
+    </div>
+
+    <div class="section-title">Transaction info</div>
+    <div class="grid">
+      <div class="field"><label>Amount (€)</label><input type="number" id="amount" value="250" min="1" max="100000"></div>
+      <div class="field"><label>Quantity</label><input type="number" id="quantity" value="2" min="1" max="1000"></div>
+      <div class="field"><label>Transaction hour (0–23)</label><input type="number" id="hour" value="14" min="0" max="23"></div>
+      <div class="field"><label>Payment method</label>
+        <select id="payment">
+          <option>Credit Card</option><option>Debit Card</option>
+          <option>PayPal</option><option>Bank Transfer</option><option>Cryptocurrency</option>
+        </select>
+      </div>
+      <div class="field"><label>Product category</label>
+        <select id="category">
+          <option>Electronics</option><option>Clothing</option><option>Books</option>
+          <option>Home & Garden</option><option>Sports</option><option>Toys</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Device</label>
+        <select id="device"><option>Desktop</option><option>Mobile</option><option>Tablet</option></select>
+      </div>
+    </div>
+
+    <div class="section-title">Customer info</div>
+    <div class="grid">
+      <div class="field"><label>Customer age</label><input type="number" id="age" value="35" min="18" max="100"></div>
+      <div class="field"><label>Account age (days)</label><input type="number" id="acc_age" value="365" min="0"></div>
+      <div class="field"><label>Total past transactions</label><input type="number" id="tx_count" value="12" min="1"></div>
+      <div class="field"><label>Avg transaction amount (€)</label><input type="number" id="avg_amount" value="150"></div>
+    </div>
+
+    <div class="section-title">Address & context</div>
+    <div class="grid">
+      <div class="field"><label>Same billing/shipping address</label>
+        <select id="same_addr"><option value="true">Yes</option><option value="false">No</option></select>
+      </div>
+      <div class="field"><label>Weekend transaction</label>
+        <select id="weekend"><option value="false">No</option><option value="true">Yes</option></select>
+      </div>
+      <div class="field"><label>Night transaction (22h–5h)</label>
+        <select id="night"><option value="false">No</option><option value="true">Yes</option></select>
+      </div>
+    </div>
+
+    <button class="btn" id="btn" onclick="analyze()">
+      <span>🔍</span> Analyze transaction
+    </button>
+    <div class="api-status">
+      <div class="dot-status" id="api-dot" style="background:#ccc"></div>
+      <span id="api-label">Checking API...</span>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="verdict" id="verdict"></div>
+    <span class="risk-badge" id="badge"></span>
+    <div class="scores" id="scores">
+      <div class="score-row">
+        <span class="score-label">XGBoost</span>
+        <div class="bar-wrap"><div class="bar" id="bar-xgb"></div></div>
+        <span class="score-val" id="val-xgb"></span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">LSTM</span>
+        <div class="bar-wrap"><div class="bar" id="bar-lstm"></div></div>
+        <span class="score-val" id="val-lstm"></span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Autoencoder</span>
+        <div class="bar-wrap"><div class="bar" id="bar-ae"></div></div>
+        <span class="score-val" id="val-ae"></span>
+      </div>
+      <div class="score-row ensemble-row">
+        <span class="score-label" style="font-weight:600;color:#1a1a1a">Ensemble (final)</span>
+        <div class="bar-wrap"><div class="bar" id="bar-ens"></div></div>
+        <span class="score-val" id="val-ens" style="font-size:16px"></span>
+      </div>
+    </div>
+    <div class="factors">
+      <div class="factors-title">Risk factors detected</div>
+      <div id="factors-list"></div>
+    </div>
+    <div class="recommendation" id="reco"></div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let apiOnline = false;
+
+async function checkAPI(){
+  try{
+    const r = await fetch(API+'/health',{signal:AbortSignal.timeout(2000)});
+    apiOnline = r.ok;
+  }catch(e){ apiOnline=false; }
+  document.getElementById('api-dot').style.background = apiOnline ? '#22c55e' : '#f59e0b';
+  document.getElementById('api-label').textContent = apiOnline
+    ? 'API connected — using real ML models'
+    : 'API offline — using heuristic fallback (run: uvicorn src.api.main:app --reload --port 8000)';
+}
+checkAPI();
+setInterval(checkAPI, 5000);
+
+const PRESETS = {
+  normal:{amount:89.99,quantity:1,hour:15,payment:'Credit Card',category:'Clothing',device:'Desktop',age:32,acc_age:730,tx_count:25,avg_amount:95,same_addr:'true',weekend:'false',night:'false'},
+  fraud:{amount:4999.99,quantity:10,hour:3,payment:'Cryptocurrency',category:'Electronics',device:'Mobile',age:22,acc_age:3,tx_count:1,avg_amount:4999.99,same_addr:'false',weekend:'true',night:'true'}
+};
+
+function loadPreset(type){
+  const p=PRESETS[type];
+  document.getElementById('amount').value=p.amount;
+  document.getElementById('quantity').value=p.quantity;
+  document.getElementById('hour').value=p.hour;
+  document.getElementById('payment').value=p.payment;
+  document.getElementById('category').value=p.category;
+  document.getElementById('device').value=p.device;
+  document.getElementById('age').value=p.age;
+  document.getElementById('acc_age').value=p.acc_age;
+  document.getElementById('tx_count').value=p.tx_count;
+  document.getElementById('avg_amount').value=p.avg_amount;
+  document.getElementById('same_addr').value=p.same_addr;
+  document.getElementById('weekend').value=p.weekend;
+  document.getElementById('night').value=p.night;
+}
+
+function barColor(s){ return s<0.3?'#22c55e':s<0.5?'#f59e0b':s<0.75?'#f97316':'#ef4444'; }
+
+function heuristic(tx){
+  let s=0.1;
+  if(tx.transaction_amount>500) s+=0.15;
+  if(tx.transaction_amount>2000) s+=0.20;
+  if(!tx.same_address) s+=0.20;
+  if(tx.account_age_days<30) s+=0.20;
+  if(tx.payment_method==='Cryptocurrency') s+=0.15;
+  const h=tx.transaction_hour;
+  if(h>=22||h<=4) s+=0.10;
+  if(tx.quantity>10) s+=0.10;
+  const avg=tx.customer_avg_amount||tx.transaction_amount;
+  if(tx.transaction_amount>avg*3) s+=0.10;
+  if((tx.customer_tx_count||99)===1) s+=0.08;
+  return Math.min(s,0.99);
+}
+
+function getFactors(tx,score){
+  const f=[];
+  if(tx.transaction_amount>1000) f.push(`High amount (${tx.transaction_amount}€)`);
+  if(!tx.same_address) f.push('Shipping ≠ billing address');
+  if(tx.account_age_days<30) f.push(`New account (${tx.account_age_days} days)`);
+  if(tx.payment_method==='Cryptocurrency') f.push('Cryptocurrency payment');
+  if(tx.is_night||(tx.transaction_hour>=22||tx.transaction_hour<=5)) f.push(`Night transaction (${tx.transaction_hour}h)`);
+  if(tx.quantity>5) f.push(`High quantity (${tx.quantity} items)`);
+  if((tx.customer_tx_count||99)===1) f.push('First ever transaction');
+  const avg=tx.customer_avg_amount;
+  if(avg&&tx.transaction_amount>avg*3) f.push(`Amount 3× above customer average (${avg}€)`);
+  return f.length?f.slice(0,5):['No major risk factors detected'];
+}
+
+async function analyze(){
+  const btn=document.getElementById('btn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div> Analyzing...';
+
+  const tx={
+    transaction_amount:parseFloat(document.getElementById('amount').value),
+    quantity:parseInt(document.getElementById('quantity').value),
+    customer_age:parseInt(document.getElementById('age').value),
+    account_age_days:parseInt(document.getElementById('acc_age').value),
+    transaction_hour:parseInt(document.getElementById('hour').value),
+    payment_method:document.getElementById('payment').value,
+    product_category:document.getElementById('category').value,
+    device_used:document.getElementById('device').value,
+    same_address:document.getElementById('same_addr').value==='true',
+    is_weekend:document.getElementById('weekend').value==='true',
+    is_night:document.getElementById('night').value==='true',
+    customer_tx_count:parseInt(document.getElementById('tx_count').value),
+    customer_avg_amount:parseFloat(document.getElementById('avg_amount').value)
+  };
+
+  let xgb,lstm,ae,ensemble,level,reco,factors,isFraud;
+
+  try{
+    const resp=await fetch(API+'/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tx),signal:AbortSignal.timeout(5000)});
+    if(!resp.ok) throw new Error();
+    const d=await resp.json();
+    xgb=d.xgboost_score;lstm=d.lstm_score;ae=d.autoencoder_score;
+    ensemble=d.ensemble_score;level=d.risk_level;reco=d.recommendation;
+    factors=d.top_risk_factors;isFraud=d.is_fraud;
+  }catch(e){
+    xgb=heuristic(tx);lstm=xgb*0.9;ae=xgb*0.8;
+    ensemble=0.35*lstm+0.65*xgb;isFraud=ensemble>0.5;
+    level=ensemble<0.3?'LOW':ensemble<0.5?'MEDIUM':ensemble<0.75?'HIGH':'CRITICAL';
+    const r={LOW:'✅ Transaction approved. No action needed.',MEDIUM:'⚠️ Monitoring recommended. Manual check possible.',HIGH:'🔴 High risk transaction. Manual review required.',CRITICAL:'🚨 Probable fraud. Block and alert customer immediately.'};
+    reco=r[level];factors=getFactors(tx,ensemble);
+  }
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('verdict').innerHTML=isFraud
+    ?'<span class="fraud-yes">⚠️ Fraud detected</span>'
+    :'<span class="fraud-no">✅ Transaction looks legitimate</span>';
+
+  const badge=document.getElementById('badge');
+  badge.textContent=level+' RISK';badge.className='risk-badge '+level;
+
+  function setBar(barId,valId,val){
+    document.getElementById(barId).style.cssText=`width:${(val*100).toFixed(0)}%;background:${barColor(val)}`;
+    document.getElementById(valId).textContent=(val*100).toFixed(1)+'%';
+    document.getElementById(valId).style.color=barColor(val);
+  }
+  setBar('bar-xgb','val-xgb',xgb);
+  setBar('bar-lstm','val-lstm',lstm);
+  setBar('bar-ae','val-ae',ae);
+  setBar('bar-ens','val-ens',ensemble);
+
+  const fl=document.getElementById('factors-list');
+  fl.innerHTML=factors.map(f=>`<div class="factor"><div class="dot"></div>${f}</div>`).join('');
+  document.getElementById('reco').textContent=reco;
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  btn.disabled=false;
+  btn.innerHTML='<span>🔍</span> Analyze transaction';
+}
+</script>
+</body>
+</html>
