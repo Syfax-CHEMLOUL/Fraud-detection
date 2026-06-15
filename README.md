@@ -19,6 +19,7 @@
 - [Résultats](#-résultats)
 - [API REST](#-api-rest)
 - [Installation](#-installation)
+- [Obtenir les modèles](#-obtenir-les-modèles-entraînés)
 - [Structure du projet](#-structure-du-projet)
 
 ---
